@@ -1,0 +1,29 @@
+const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch({ headless: false }); // Launch the browser
+    const page = await browser.newPage(); // Open a new page
+
+    // Listen for all network requests
+    page.on('request', request => {
+        const url = request.url();
+        const method = request.method();
+        if (method === 'GET' && url.startsWith('https://image-generation.perchance.org/api/verifyUser?thread')) {
+            console.log(`Request: ${method} ${url}`);
+        }
+    });
+
+    // Listen for all network responses
+    page.on('response', async response => {
+        const url = response.url();
+        if (url.startsWith('https://image-generation.perchance.org/api/verifyUser?thread')) {
+            console.log(`Response: ${url}`);
+            console.log(`Status: ${response.status()}`);
+            console.log(`Headers: ${JSON.stringify(response.headers(), null, 2)}`);
+            const body = await response.text();
+            console.log(`Body: ${body}`);
+        }
+    });
+
+    await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 4000 + 1000)));
+})();
